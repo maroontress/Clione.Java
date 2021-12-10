@@ -1,0 +1,79 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'checkstyle'
+    id 'maven-publish'
+}
+
+group 'com.maroontress'
+version '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    sourceCompatibility = 11
+    targetCompatibility = 11
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+    sourceCompatibility = 14
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = false
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('reports/jacoco-html')
+    }
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+javadoc {
+    options.addStringOption("locale", "en-US")
+}
+
+checkstyle {
+    toolVersion '9.2.1'
+}
+
+checkstyleMain {
+    configFile = file("${rootDir}/config/checkstyle/main.xml")
+}
+
+checkstyleTest {
+    configFile = file("${rootDir}/config/checkstyle/test.xml")
+}
+
+publishing {
+    repositories {
+        maven {
+            name = 'LocalFile'
+            url = uri("${localMavenRepo}")
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
