@@ -37,9 +37,9 @@ test {
 jacocoTestReport {
     dependsOn test
     reports {
-        xml.required = false
-        csv.required = false
-        html.outputLocation = layout.buildDirectory.dir('reports/jacoco-html')
+        xml.required.set(false)
+        csv.required.set(false)
+        html.outputLocation.set(layout.buildDirectory.dir('reports/jacoco-html'))
     }
 }
 
@@ -49,7 +49,8 @@ java {
 }
 
 javadoc {
-    options.addStringOption("locale", "en-US")
+    options.locale = 'en_US'
+    options.encoding = 'UTF-8'
 }
 
 checkstyle {
