@@ -165,7 +165,7 @@ public final class Chars {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    private static class Sets {
+    private static final class Sets {
         private static final Set<Character> UPPER_CASE_LETTERS
                 = newCharSetWithRange('A', 'Z');
 

@@ -9,6 +9,10 @@ import com.maroontress.clione.SourceSpan;
 */
 public abstract class Eof implements SourceChar {
 
+    /**　Creates a new instance.　*/
+    protected Eof() {
+    }
+
     /** {@inheritDoc} */
     @Override
     public final boolean isEof() {
