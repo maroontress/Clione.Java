@@ -187,22 +187,22 @@ public final class Switches {
         };
     }
 
-    private static class Colon {
-        public static final Case CASE = Case.of(
+    private static final class Colon {
+        static final Case CASE = Case.of(
                 ':', TokenType.PUNCTUATOR,
                 // >
                 Case.of('>', Digraphs::toRightBracket));
     }
 
-    private static class Sharp {
-        public static final Case CASE = Case.of(
+    private static final class Sharp {
+        static final Case CASE = Case.of(
                 '#', TokenType.DIRECTIVE,
                 // #
                 Case.of('#', x -> TokenType.UNKNOWN));
     }
 
-    private static class Percent {
-        public static final Case CASE = Case.of(
+    private static final class Percent {
+        static final Case CASE = Case.of(
                 '%', TokenType.OPERATOR,
                 // :
                 ColonAfterPercent.CASE,
@@ -212,29 +212,29 @@ public final class Switches {
                 Case.of('=', x -> TokenType.OPERATOR));
     }
 
-    private static class ColonAfterPercent {
-        public static final Case CASE = Case.of(
+    private static final class ColonAfterPercent {
+        static final Case CASE = Case.of(
                 ':', Digraphs::toDirective,
                 // %
                 PercentAfterPercentColon.CASE);
     }
 
-    private static class PercentAfterPercentColon {
-        public static final Case CASE = Case.of(
+    private static final class PercentAfterPercentColon {
+        static final Case CASE = Case.of(
                 '%', TokenType.UNKNOWN,
                 // :
                 Case.of(':', Digraphs::toUnknownDoubleNumberSign));
     }
 
-    private static class SharpInsideDirective {
-        public static final Case CASE = Case.of(
+    private static final class SharpInsideDirective {
+        static final Case CASE = Case.of(
                 '#', TokenType.OPERATOR,
                 // #
                 Case.of('#', x -> TokenType.OPERATOR));
     }
 
-    private static class PercentInsideDirective {
-        public static final Case CASE = Case.of(
+    private static final class PercentInsideDirective {
+        static final Case CASE = Case.of(
                 '%', TokenType.OPERATOR,
                 // :
                 ColonAfterPercentInsideDirective.CASE,
@@ -244,23 +244,23 @@ public final class Switches {
                 Case.of('=', x -> TokenType.OPERATOR));
     }
 
-    private static class ColonAfterPercentInsideDirective {
-        public static final Case CASE = Case.of(
+    private static final class ColonAfterPercentInsideDirective {
+        static final Case CASE = Case.of(
                 ':', Digraphs::toStringificationOperator,
                 // %
                 PercentAfterPercentColonInsideDirective.CASE);
     }
 
-    private static class PercentAfterPercentColonInsideDirective {
-        public static final Case CASE = Case.of(
+    private static final class PercentAfterPercentColonInsideDirective {
+        static final Case CASE = Case.of(
                 '%', TokenType.UNKNOWN,
                 // :
                 Case.of(':', Digraphs::toTokenPastingOperator));
     }
 
-    private static class Backslash {
+    private static final class Backslash {
         // Unicode non-digit character
-        public static final Case CASE = Case.of(
+        static final Case CASE = Case.of(
                 '\\', TokenType.UNKNOWN,
                 // u
                 Cases.LOWER_U_AFTER_BACKSLASH,
@@ -268,9 +268,9 @@ public final class Switches {
                 Cases.UPPER_U_AFTER_BACKSLASH);
     }
 
-    private static class Slash {
+    private static final class Slash {
         // Comment (/*...*/ //...) or operator (/ /=)
-        public static final Case CASE = Case.of(
+        static final Case CASE = Case.of(
                 '/', TokenType.OPERATOR,
                 // *
                 Cases.ASTERISK_AFTER_SLASH,
@@ -280,9 +280,9 @@ public final class Switches {
                 Case.of('=', x -> TokenType.OPERATOR));
     }
 
-    private static class EightAfterLowerU {
+    private static final class EightAfterLowerU {
         // UTF-8 string literal or identifier
-        public static final Case CASE = Case.of(
+        static final Case CASE = Case.of(
                 '8', TokenType.IDENTIFIER,
                 // [_A-Za-z0-9]
                 Cases.IDENTIFIER_AFTER_PREFIX,
@@ -290,9 +290,9 @@ public final class Switches {
                 Cases.STRING_LITERAL);
     }
 
-    private static class LowerU {
+    private static final class LowerU {
         // Prefix (u8 u) or identifier
-        public static final Case CASE = Case.of(
+        static final Case CASE = Case.of(
                 'u', TokenType.IDENTIFIER,
                 // 8
                 EightAfterLowerU.CASE,
@@ -304,9 +304,9 @@ public final class Switches {
                 Cases.CHARACTER_CONSTANT);
     }
 
-    private static class UpperLOrU {
+    private static final class UpperLOrU {
         // Prefix (L U) or identifier
-        public static final Case CASE = Case.of(
+        static final Case CASE = Case.of(
                 Set.of('L', 'U'), TokenType.IDENTIFIER,
                 // [_A-Za-z0-9]
                 Cases.IDENTIFIER_AFTER_PREFIX,
@@ -316,9 +316,9 @@ public final class Switches {
                 Cases.CHARACTER_CONSTANT);
     }
 
-    private static class Dot {
+    private static final class Dot {
         // Preprocessing number starting with a dot (.[0-9]+) or operator
-        public static final Case CASE = Case.of(
+        static final Case CASE = Case.of(
                 '.', TokenType.OPERATOR,
                 // 0-9
                 Cases.NUMBER,
@@ -327,28 +327,28 @@ public final class Switches {
     }
 
     /** Leaf cases. */
-    private static class Cases {
-        public static final Case GREATER_THAN_FOLLOWING_PERCENT = Case.of(
+    private static final class Cases {
+        static final Case GREATER_THAN_FOLLOWING_PERCENT = Case.of(
                 '>', Digraphs::toRightBrace);
 
         // + ++ +=
-        public static final Case PLUS = newFollowingSelfOrEqualCase('+');
+        static final Case PLUS = newFollowingSelfOrEqualCase('+');
 
         // - -- -=
-        public static final Case AND = newFollowingSelfOrEqualCase('&');
+        static final Case AND = newFollowingSelfOrEqualCase('&');
 
         // & && &=
-        public static final Case OR = newFollowingSelfOrEqualCase('|');
+        static final Case OR = newFollowingSelfOrEqualCase('|');
 
         // X X=
-        public static final Case OPERATOR_FOLLOWED_BY_EQUAL = Case.of(
+        static final Case OPERATOR_FOLLOWED_BY_EQUAL = Case.of(
                 Set.of('*', '^', '!', '~', '='), x -> {
                     x.readZeroOrOneChar(c -> c == '=');
                     return TokenType.OPERATOR;
                 });
 
         // < << <= <<= <: <%
-        public static final Case LESS_THAN = Case.of(
+        static final Case LESS_THAN = Case.of(
                 '<', newLessOrGreaterThanTokenizer('<'),
                 // :
                 Case.of(':', Digraphs::toLeftBracket),
@@ -356,75 +356,75 @@ public final class Switches {
                 Case.of('%', Digraphs::toLeftBrace));
 
         // > >> >= >>=
-        public static final Case GREATER_THAN = Case.of(
+        static final Case GREATER_THAN = Case.of(
                 '>', newLessOrGreaterThanTokenizer('>'));
 
         // [ ] ( ) { } , ;
-        public static final Case PUNCTUATOR = Case.of(
+        static final Case PUNCTUATOR = Case.of(
                 Set.of('[', ']', '(', ')', '{', '}', ',', ';'),
                 TokenType.PUNCTUATOR);
 
         // ?
-        public static final Case QUESTION = Case.of('?', TokenType.OPERATOR);
+        static final Case QUESTION = Case.of('?', TokenType.OPERATOR);
 
         // - -> -- -=
-        public static final Case MINUS = Case.of(
+        static final Case MINUS = Case.of(
                 '-', TokenType.OPERATOR,
                 // > - =
                 Case.of(Set.of('>', '-', '='), x -> TokenType.OPERATOR));
 
-        public static final Case DELIMITER = Case.of(
+        static final Case DELIMITER = Case.of(
                 Chars.DELIMITER_SET, x -> {
                     x.readZeroOrMoreChars(Chars::isDelimiter);
                     return TokenType.DELIMITER;
                 });
 
-        public static final Case NUMBER = Case.of(
+        static final Case NUMBER = Case.of(
                 Chars.DIGIT_SET, x -> {
                     x.readNumber();
                     return TokenType.NUMBER;
                 });
 
-        public static final Case IDENTIFIER = Case.of(
+        static final Case IDENTIFIER = Case.of(
                 Chars.FIRST_OF_IDENTIFIER_SET, x -> {
                     x.readIdentifier();
                     return TokenType.IDENTIFIER;
                 });
 
-        public static final Case CHARACTER_CONSTANT = Case.of(
+        static final Case CHARACTER_CONSTANT = Case.of(
                 '\'', x -> {
                     x.readStringOrCharacter('\'');
                     return TokenType.CHARACTER;
                 });
 
-        public static final Case STRING_LITERAL = Case.of(
+        static final Case STRING_LITERAL = Case.of(
                 '"', x -> {
                     x.readStringOrCharacter('"');
                     return TokenType.STRING;
                 });
 
-        public static final Case DIRECTIVE_DELIMITER = Case.of(
+        static final Case DIRECTIVE_DELIMITER = Case.of(
                 Chars.DIRECTIVE_DELIMITER_SET, x -> {
                     x.readZeroOrMoreChars(Chars::isDirectiveDelimiter);
                     return TokenType.DELIMITER;
                 });
 
-        public static final Case DIRECTIVE_END = Case.of(
+        static final Case DIRECTIVE_END = Case.of(
                 '\n', x -> TokenType.DIRECTIVE_END);
 
-        public static final Case STANDARD_HEADER = Case.of(
+        static final Case STANDARD_HEADER = Case.of(
                 '<', x -> {
                     x.readFilename('>');
                     return TokenType.STANDARD_HEADER;
                 });
 
-        public static final Case FILENAME = Case.of(
+        static final Case FILENAME = Case.of(
                 '\"', x -> {
                     x.readFilename('\"');
                     return TokenType.FILENAME;
                 });
 
-        public static final Case DOUBLE_DOT = Case.of(
+        static final Case DOUBLE_DOT = Case.of(
                 '.', x -> {
                     if (x.readZeroOrOneChar(c -> c == '.') == null) {
                         // .
@@ -437,28 +437,28 @@ public final class Switches {
                     return TokenType.PUNCTUATOR;
                 });
 
-        public static final Case ASTERISK_AFTER_SLASH = Case.of(
+        static final Case ASTERISK_AFTER_SLASH = Case.of(
                 '*', x -> {
                     x.readComment();
                     return TokenType.COMMENT;
                 });
 
-        public static final Case DOUBLE_SLASH = Case.of(
+        static final Case DOUBLE_SLASH = Case.of(
                 '/', x -> {
                     x.readSingleLine();
                     return TokenType.COMMENT;
                 });
 
-        public static final Case IDENTIFIER_AFTER_PREFIX = Case.of(
+        static final Case IDENTIFIER_AFTER_PREFIX = Case.of(
                 Chars.IDENTIFIER_SET, x -> {
                     x.readIdentifier();
                     return TokenType.IDENTIFIER;
                 });
 
-        public static final Case LOWER_U_AFTER_BACKSLASH = Case.of(
+        static final Case LOWER_U_AFTER_BACKSLASH = Case.of(
                 'u', newUniversalCharacterNameCase(4));
 
-        public static final Case UPPER_U_AFTER_BACKSLASH = Case.of(
+        static final Case UPPER_U_AFTER_BACKSLASH = Case.of(
                 'U', newUniversalCharacterNameCase(8));
     }
 }

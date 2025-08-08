@@ -9,6 +9,10 @@ import java.io.Reader;
 */
 public abstract class AbstractReader extends Reader {
 
+    /**　Creates a new instance.　*/
+    protected AbstractReader() {
+    }
+
     /** {@inheritDoc} */
     @Override
     public final int read(char[] array, int offset, int length)

@@ -5,17 +5,18 @@ plugins {
     id 'maven-publish'
 }
 
-group 'com.maroontress'
-version '1.0'
+group = 'com.maroontress'
+version = '1.0'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testImplementation 'org.hamcrest:hamcrest:2.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    testImplementation 'org.hamcrest:hamcrest:3.0'
+    testImplementation platform("org.junit:junit-bom:5.13.4")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
 compileJava {
@@ -54,7 +55,7 @@ javadoc {
 }
 
 checkstyle {
-    toolVersion '9.2.1'
+    toolVersion = '11.0.0'
 }
 
 checkstyleMain {

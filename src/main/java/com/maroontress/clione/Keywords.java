@@ -40,7 +40,7 @@ public final class Keywords {
                 .collect(Collectors.toUnmodifiableSet());
     }
 
-    private static class C89Keywords {
+    private static final class C89Keywords {
         private static final Set<String> ALL = Set.of("auto", "break", "case",
                 "char", "const", "continue", "default", "do", "double", "else",
                 "enum", "extern", "float", "for", "goto", "if", "int", "long",
@@ -49,12 +49,12 @@ public final class Keywords {
                 "volatile", "while");
     }
 
-    private static class C99Keywords {
+    private static final class C99Keywords {
         private static final Set<String> ALL = union(C89Keywords.ALL, Set.of(
                 "_Bool", "_Complex", "_Imaginary", "inline", "restrict"));
     }
 
-    private static class C11Keywords {
+    private static final class C11Keywords {
         private static final Set<String> ALL = union(C99Keywords.ALL, Set.of(
                 "_Alignas", "_Alignof", "_Atomic", "_Generic", "_Noreturn",
                 "_Static_assert", "_Thread_local"));
