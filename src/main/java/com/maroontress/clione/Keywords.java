@@ -25,6 +25,7 @@ public final class Keywords {
     public static final Set<String> PP_DIRECTIVE_NAMES = Set.of(
             "include",
             "define",
+            "undef",
             "if", "ifdef", "ifndef", "elif", "else", "endif",
             "line",
             "error",
