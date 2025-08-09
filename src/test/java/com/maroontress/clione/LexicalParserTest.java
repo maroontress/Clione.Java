@@ -38,7 +38,10 @@ public final class LexicalParserTest {
 
     @Test
     public void identifiers() {
-        var s = "foo\nbar\nbaz";
+        var s = """
+            foo
+            bar
+            baz""";
         var list = List.of(pair("foo", TokenType.IDENTIFIER),
                 pair("\n", TokenType.DELIMITER),
                 pair("bar", TokenType.IDENTIFIER),
@@ -72,18 +75,23 @@ public final class LexicalParserTest {
 
     @Test
     public void keywords() {
-        test("auto break case char const continue default do double "
-                + "else enum extern float for goto if int long register return "
-                + "short signed sizeof static struct switch typedef union "
-                + "unsigned void volatile while "
-                + "_Bool _Complex _Imaginary inline restrict "
-                + "_Alignas _Alignof _Atomic _Generic _Noreturn _Static_assert "
-                + "_Thread_local", TokenType.RESERVED);
+        var s = """
+            auto break case char const continue default do double else enum
+            extern float for goto if int long register return short signed
+            sizeof static struct switch typedef union unsigned void volatile
+            while
+            _Bool _Complex _Imaginary inline restrict
+            _Alignas _Alignof _Atomic _Generic _Noreturn _Static_assert
+            _Thread_local
+            """.trim();
+        test(s.replace('\n', ' '), TokenType.RESERVED);
     }
 
     @Test
     public void digraphReplacement0() {
-        var s = "%:\n";
+        var s = """
+            %:
+            """;
         var childList = List.of(pair("\n", TokenType.DIRECTIVE_END));
         var list = List.of(pair("#", TokenType.DIRECTIVE, childList));
         test(s, list);
@@ -104,7 +112,9 @@ public final class LexicalParserTest {
 
     @Test
     public void digraphReplacement2() {
-        var s = "%:define x(a,b) a%:%:b\n";
+        var s = """
+            %:define x(a,b) a%:%:b
+            """;
         var childList = List.of(
                 pair("define", TokenType.DIRECTIVE_NAME),
                 pair(" ", TokenType.DELIMITER),
@@ -125,7 +135,9 @@ public final class LexicalParserTest {
 
     @Test
     public void digraphReplacement3() {
-        var s = "%:#\n";
+        var s = """
+            %:#
+            """;
         var childList = List.of(pair("#", TokenType.OPERATOR),
                 pair("\n", TokenType.DIRECTIVE_END));
         var list = List.of(pair("#", TokenType.DIRECTIVE, childList));
@@ -134,7 +146,9 @@ public final class LexicalParserTest {
 
     @Test
     public void digraphReplacement4() {
-        var s = "#%:\n";
+        var s = """
+            #%:
+            """;
         var childList = List.of(pair("#", TokenType.OPERATOR),
                 pair("\n", TokenType.DIRECTIVE_END));
         var list = List.of(pair("#", TokenType.DIRECTIVE, childList));
@@ -143,7 +157,9 @@ public final class LexicalParserTest {
 
     @Test
     public void trigraphReplacement0() {
-        var s = "??=\n";
+        var s = """
+            ??=
+            """;
         var childList = List.of(pair("\n", TokenType.DIRECTIVE_END));
         var list = List.of(pair("#", TokenType.DIRECTIVE, childList));
         test(s, list);
@@ -175,7 +191,9 @@ public final class LexicalParserTest {
 
     @Test
     public void trigraphReplacement3() {
-        var s = "ma??/\nin '??/'' \"??/\"";
+        var s = """
+            ma??/
+            in '??/'' \"??/\"""";
         var list = List.of(pair("main", TokenType.IDENTIFIER),
                 pair(" ", TokenType.DELIMITER),
                 pair("'\\''", TokenType.CHARACTER),
@@ -198,7 +216,9 @@ public final class LexicalParserTest {
 
     @Test
     public void singleLineComment1() {
-        var s = "// bar\n";
+        var s = """
+            // bar
+            """;
         var list = List.of(
                 pair("// bar", TokenType.COMMENT),
                 pair("\n", TokenType.DELIMITER));
@@ -214,7 +234,9 @@ public final class LexicalParserTest {
 
     @Test
     public void directive0() {
-        var s = "#define DEBUG\n";
+        var s = """
+            #define DEBUG
+            """;
         var childList = List.of(
                 pair("define", TokenType.DIRECTIVE_NAME),
                 pair(" ", TokenType.DELIMITER),
@@ -226,8 +248,10 @@ public final class LexicalParserTest {
 
     @Test
     public void directive1() {
-        var s = "#define square(x)\\\n"
-                + "    ((x)*(x))\n";
+        var s = """
+            #define square(x)\\
+                ((x)*(x))
+            """;
         var childList = List.of(
                 pair("define", TokenType.DIRECTIVE_NAME),
                 pair(" ", TokenType.DELIMITER),
@@ -252,7 +276,9 @@ public final class LexicalParserTest {
 
     @Test
     public void directive2() {
-        var s = "#if 1\n";
+        var s = """
+            #if 1
+            """;
         var childList = List.of(
                 pair("if", TokenType.DIRECTIVE_NAME),
                 pair(" ", TokenType.DELIMITER),
@@ -264,7 +290,9 @@ public final class LexicalParserTest {
 
     @Test
     public void directive3() {
-        var s = "#define x(a,b) a##b\n";
+        var s = """
+            #define x(a,b) a##b
+            """;
         var childList = List.of(
                 pair("define", TokenType.DIRECTIVE_NAME),
                 pair(" ", TokenType.DELIMITER),
@@ -285,8 +313,10 @@ public final class LexicalParserTest {
 
     @Test
     public void includeDirective0() {
-        var s = "#include/* COMMENT\n"
-                + "*/<stdio.h>// COMMENT\n";
+        var s = """
+            #include/* COMMENT
+            */<stdio.h>// COMMENT
+            """;
         var childList = List.of(
                 pair("include", TokenType.DIRECTIVE_NAME),
                 pair("/* COMMENT\n*/", TokenType.COMMENT),
@@ -299,6 +329,7 @@ public final class LexicalParserTest {
 
     @Test
     public void includeDirective1() {
+        // Don't use Text Blocks here because there is a trailing space.
         var s = "#/* COMMENT */include \"main.h\"/**/ \n";
         var childList = List.of(
                 pair("/* COMMENT */", TokenType.COMMENT),
@@ -314,7 +345,9 @@ public final class LexicalParserTest {
 
     @Test
     public void includeDirective2() {
-        var s = "#include <:a:>\n";
+        var s = """
+            #include <:a:>
+            """;
         var childList = List.of(
                 pair("include", TokenType.DIRECTIVE_NAME),
                 pair(" ", TokenType.DELIMITER),
@@ -326,7 +359,9 @@ public final class LexicalParserTest {
 
     @Test
     public void includeDirective3() {
-        var s = "#include <%a%>\n";
+        var s = """
+            #include <%a%>
+            """;
         var childList = List.of(
                 pair("include", TokenType.DIRECTIVE_NAME),
                 pair(" ", TokenType.DELIMITER),
@@ -338,7 +373,10 @@ public final class LexicalParserTest {
 
     @Test
     public void includeDirective4() {
-        var s = "#define X(x) x.h>\n#include X(<stdio)\n";
+        var s = """
+            #define X(x) x.h>
+            #include X(<stdio)
+            """;
         var defineChildList = List.of(
                 pair("define", TokenType.DIRECTIVE_NAME),
                 pair(" ", TokenType.DELIMITER),
@@ -369,7 +407,9 @@ public final class LexicalParserTest {
 
     @Test
     public void unterminatedStandardHeader() {
-        var s = "#include <std\n";
+        var s = """
+            #include <std
+            """;
         var childList = List.of(
                 pair("include", TokenType.DIRECTIVE_NAME),
                 pair(" ", TokenType.DELIMITER),
@@ -381,7 +421,9 @@ public final class LexicalParserTest {
 
     @Test
     public void unterminatedFilename() {
-        var s = "#include \"std\n";
+        var s = """
+            #include "std
+            """;
         var childList = List.of(
                 pair("include", TokenType.DIRECTIVE_NAME),
                 pair(" ", TokenType.DELIMITER),
@@ -409,13 +451,16 @@ public final class LexicalParserTest {
 
     @Test
     public void operatorTokens() {
-        test("+ - * / % ++ -- "
-                + "== != > < >= <= "
-                + "! && || "
-                + "~ & | ^ << >> "
-                + "= += -= *= /= %= &= |= ^= <<= >>= "
-                + ". -> "
-                + "?", TokenType.OPERATOR);
+        var s = """
+            + - * / % ++ --
+            == != > < >= <=
+            ! && ||
+            ~ & | ^ << >>
+            = += -= *= /= %= &= |= ^= <<= >>=
+            . ->
+            ?
+            """.trim();
+        test(s.replace('\n', ' '), TokenType.OPERATOR);
     }
 
     @Test
@@ -425,7 +470,9 @@ public final class LexicalParserTest {
 
     @Test
     public void lineConcatenates() {
-        var s = "ma\\\nin";
+        var s = """
+                ma\\
+                in""";
         test(s, parser -> {
             var maybeToken = parser.next();
             var where = parser.getLocation();
@@ -452,8 +499,10 @@ public final class LexicalParserTest {
 
     @Test
     public void lineConcatenatesWithTrigraph() {
-        var s = "ma??/\nin";
-        //       123456  12
+        var s = """
+            ma??/
+            in""";
+        //  123456
         test(s, parser -> {
             var maybeToken = parser.next();
             var where = parser.getLocation();
@@ -490,7 +539,9 @@ public final class LexicalParserTest {
 
     @Test
     public void unterminatedCharacterConstant() {
-        var s = "'c\n";
+        var s = """
+            'c
+            """;
         var list = List.of(pair("'c", TokenType.CHARACTER),
                 pair("\n", TokenType.DELIMITER));
         test(s, list);
@@ -498,13 +549,17 @@ public final class LexicalParserTest {
 
     @Test
     public void stringLiteral() {
-        var s = "\"char\" L\"wchar_t\" u\"ucs2\" U\"ucs4\" u8\"utf8\"";
+        var s = """
+            "char" L"wchar_t" u"ucs2" U"ucs4" u8"utf8"
+            """.trim();
         test(s, TokenType.STRING);
     }
 
     @Test
     public void unterminatedStringLiteral() {
-        var s = "\"hello\n";
+        var s = """
+            "hello
+            """;
         var list = List.of(pair("\"hello", TokenType.STRING),
                 pair("\n", TokenType.DELIMITER));
         test(s, list);
@@ -564,7 +619,9 @@ public final class LexicalParserTest {
 
     @Test
     public void universalCharacterNameUpperUFirst() {
-        var s = "char *\\U0001f431s = \"cats\";";
+        var s = """
+            char *\\U0001f431s = "cats";
+            """.trim();
         var list = List.of(pair("char", TokenType.RESERVED),
                 pair(" ", TokenType.DELIMITER),
                 pair("*", TokenType.OPERATOR),
@@ -579,7 +636,9 @@ public final class LexicalParserTest {
 
     @Test
     public void universalCharacterNameUpperU() {
-        var s = "char *big\\U0001f431s = \"bigCats\";";
+        var s = """
+            char *big\\U0001f431s = "bigCats";
+            """.trim();
         var list = List.of(pair("char", TokenType.RESERVED),
                 pair(" ", TokenType.DELIMITER),
                 pair("*", TokenType.OPERATOR),
@@ -594,7 +653,9 @@ public final class LexicalParserTest {
 
     @Test
     public void universalCharacterNameLowerUFirst() {
-        var s = "char *\\u732bs = \"cats\";";
+        var s = """
+            char *\\u732bs = "cats";
+            """.trim();
         var list = List.of(pair("char", TokenType.RESERVED),
                 pair(" ", TokenType.DELIMITER),
                 pair("*", TokenType.OPERATOR),
@@ -609,7 +670,9 @@ public final class LexicalParserTest {
 
     @Test
     public void universalCharacterNameLowerU() {
-        var s = "char *big\\u732bs = \"bigCats\";";
+        var s = """
+            char *big\\u732bs = "bigCats";
+            """.trim();
         var list = List.of(pair("char", TokenType.RESERVED),
                 pair(" ", TokenType.DELIMITER),
                 pair("*", TokenType.OPERATOR),
@@ -624,7 +687,9 @@ public final class LexicalParserTest {
 
     @Test
     public void implementationDefinedCharactersFirst() {
-        var s = "char *猫s = \"cats\";";
+        var s = """
+            char *猫s = "cats";
+            """.trim();
         var list = List.of(pair("char", TokenType.RESERVED),
                 pair(" ", TokenType.DELIMITER),
                 pair("*", TokenType.OPERATOR),
@@ -639,7 +704,9 @@ public final class LexicalParserTest {
 
     @Test
     public void implementationDefinedCharacters() {
-        var s = "char *big猫s = \"bigCats\";";
+        var s = """
+            char *big猫s = "bigCats";
+            """.trim();
         var list = List.of(pair("char", TokenType.RESERVED),
                 pair(" ", TokenType.DELIMITER),
                 pair("*", TokenType.OPERATOR),
@@ -686,7 +753,10 @@ public final class LexicalParserTest {
 
     @Test
     public void concatNewlineFollowedByEof() {
-        var s = "main\\\n\\\n";
+        var s = """
+                main\\
+                \\
+                """;
         test(s, parser -> {
             {
                 var maybeToken = parser.next();
