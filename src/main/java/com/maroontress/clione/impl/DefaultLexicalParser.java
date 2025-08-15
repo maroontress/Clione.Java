@@ -84,7 +84,7 @@ public final class DefaultLexicalParser implements LexicalParser {
 
     private Token newToken() throws IOException {
         var x = new Transcriber(source);
-        var type = readToken(x);
+        var type = x.readToken();
         if (type == null) {
             return null;
         }
@@ -175,11 +175,11 @@ public final class DefaultLexicalParser implements LexicalParser {
     }
 
     private Token newDirectiveChildToken() throws IOException {
-        return newChildToken(DefaultLexicalParser::readDirectiveToken);
+        return newChildToken(Transcriber::readDirectiveToken);
     }
 
     private Token newIncludeDirectiveChildToken() throws IOException {
-        return newChildToken(DefaultLexicalParser::readIncludeDirectiveToken);
+        return newChildToken(Transcriber::readIncludeDirectiveToken);
     }
 
     private Token newChildToken(NextTokenReader reader) throws IOException {
@@ -195,58 +195,6 @@ public final class DefaultLexicalParser implements LexicalParser {
                     : token;
         }
         return token;
-    }
-
-    private static TokenType readToken(Transcriber x) throws IOException {
-        return x.readTokenOtherwise(Switches.DEFAULT,
-                DefaultLexicalParser::readSymbol);
-    }
-
-    private static TokenType readDirectiveToken(Transcriber x)
-            throws IOException {
-        return x.readTokenOtherwise(Switches.DIRECTIVE,
-                DefaultLexicalParser::readSymbol);
-    }
-
-    private static TokenType readIncludeDirectiveToken(Transcriber x)
-            throws IOException {
-        return x.readTokenOtherwise(Switches.INCLUDE_DIRECTIVE,
-                DefaultLexicalParser::readSymbol);
-    }
-
-    private static TokenType readSymbol(Transcriber x, SourceChar i)
-            throws IOException {
-        var s = x.getSource();
-        var b = x.getBuilder();
-        var c = i.toChar();
-        if (Character.isHighSurrogate(c)) {
-            var j = s.getChar();
-            if (j.isEof()) {
-                b.append(i);
-                return TokenType.UNKNOWN;
-            }
-            var n = j.toChar();
-            if (!Character.isLowSurrogate(n)) {
-                s.ungetChar(j);
-                b.append(i);
-                return TokenType.UNKNOWN;
-            }
-            b.append(i);
-            b.append(j);
-            var u = Character.toCodePoint(c, n);
-            if (!Character.isUnicodeIdentifierStart(u)) {
-                return TokenType.UNKNOWN;
-            }
-            x.readIdentifier();
-            return TokenType.IDENTIFIER;
-        }
-        if (Character.isUnicodeIdentifierStart(c)) {
-            b.append(i);
-            x.readIdentifier();
-            return TokenType.IDENTIFIER;
-        }
-        b.append(i);
-        return TokenType.UNKNOWN;
     }
 
     @FunctionalInterface

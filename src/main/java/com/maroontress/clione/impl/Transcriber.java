@@ -488,6 +488,39 @@ public final class Transcriber {
     }
 
     /**
+        Reads a token from the source in the default context.
+
+        @return The token type of the token to have read.
+        @throws IOException If an I/O error occurs.
+    */
+    public TokenType readToken() throws IOException {
+        return readTokenOtherwise(Switches.DEFAULT, Transcriber::readSymbol);
+    }
+
+    /**
+        Reads a token from the source in the context of a preprocessing
+        directive.
+
+        @return The token type of the token to have read.
+        @throws IOException If an I/O error occurs.
+    */
+    public TokenType readDirectiveToken() throws IOException {
+        return readTokenOtherwise(Switches.DIRECTIVE, Transcriber::readSymbol);
+    }
+
+    /**
+        Reads a token from the source in the context of a preprocessing
+        {@code #include} directive.
+
+        @return The token type of the token to have read.
+        @throws IOException If an I/O error occurs.
+    */
+    public TokenType readIncludeDirectiveToken() throws IOException {
+        return readTokenOtherwise(Switches.INCLUDE_DIRECTIVE,
+                Transcriber::readSymbol);
+    }
+
+    /**
         Reads characters according to the specified mapper.
 
         <p>This method reads the character that the mapper maps to the
@@ -511,7 +544,7 @@ public final class Transcriber {
             {@code null} if this method reaches EOF.
         @throws IOException If an I/O error occurs.
     */
-    public TokenType readTokenOtherwise(
+    private TokenType readTokenOtherwise(
             Mapper mapper, DefaultTokenizer otherwise) throws IOException {
         var s = source;
         var b = builder;
@@ -526,6 +559,41 @@ public final class Transcriber {
         }
         b.append(i);
         return a.apply(this);
+    }
+
+    private static TokenType readSymbol(Transcriber x, SourceChar i)
+            throws IOException {
+        var s = x.getSource();
+        var b = x.getBuilder();
+        var c = i.toChar();
+        if (Character.isHighSurrogate(c)) {
+            var j = s.getChar();
+            if (j.isEof()) {
+                b.append(i);
+                return TokenType.UNKNOWN;
+            }
+            var n = j.toChar();
+            if (!Character.isLowSurrogate(n)) {
+                s.ungetChar(j);
+                b.append(i);
+                return TokenType.UNKNOWN;
+            }
+            b.append(i);
+            b.append(j);
+            var u = Character.toCodePoint(c, n);
+            if (!Character.isUnicodeIdentifierStart(u)) {
+                return TokenType.UNKNOWN;
+            }
+            x.readIdentifier();
+            return TokenType.IDENTIFIER;
+        }
+        if (Character.isUnicodeIdentifierStart(c)) {
+            b.append(i);
+            x.readIdentifier();
+            return TokenType.IDENTIFIER;
+        }
+        b.append(i);
+        return TokenType.UNKNOWN;
     }
 
     private boolean tryReadUcn(SourceChar first) throws IOException {
