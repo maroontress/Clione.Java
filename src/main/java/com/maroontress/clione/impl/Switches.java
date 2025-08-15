@@ -196,9 +196,9 @@ public final class Switches {
 
     private static final class Sharp {
         static final Case CASE = Case.of(
-                '#', TokenType.DIRECTIVE,
+                '#', TokenType.PUNCTUATOR,
                 // #
-                Case.of('#', x -> TokenType.UNKNOWN));
+                Case.of('#', x -> TokenType.PUNCTUATOR));
     }
 
     private static final class Percent {

@@ -21,6 +21,7 @@ public final class DefaultLexicalParser implements LexicalParser {
 
     private final Source source;
     private final Set<String> reservedWords;
+    private boolean isTheFirstTokenFound;
 
     /**
         Creates a new instance.
@@ -82,6 +83,12 @@ public final class DefaultLexicalParser implements LexicalParser {
         return Optional.ofNullable(newToken());
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public Set<String> getReservedWords() {
+        return reservedWords;
+    }
+
     private Token newToken() throws IOException {
         var x = new Transcriber(source);
         var type = x.readToken();
@@ -89,15 +96,20 @@ public final class DefaultLexicalParser implements LexicalParser {
             return null;
         }
         var token = x.toToken(type);
-        if (type == TokenType.IDENTIFIER) {
-            return reservedWords.contains(token.getValue())
-                    ? token.withType(TokenType.RESERVED)
-                    : token;
+        if (type == TokenType.DELIMITER && token.getValue().equals("\n")) {
+            isTheFirstTokenFound = false;
+            return token;
         }
-        if (type == TokenType.DIRECTIVE) {
-            return newDirectiveToken(token);
+        if (type == TokenType.DELIMITER || type == TokenType.COMMENT) {
+            return token;
         }
-        return token;
+        if (!isTheFirstTokenFound
+                && type == TokenType.PUNCTUATOR
+                && token.getValue().equals("#")) {
+            return newDirectiveToken(token.withType(TokenType.DIRECTIVE));
+        }
+        isTheFirstTokenFound = true;
+        return normalizeToken(token);
     }
 
     private Token newDirectiveToken(Token token) throws IOException {
@@ -188,13 +200,14 @@ public final class DefaultLexicalParser implements LexicalParser {
         if (type == null) {
             return null;
         }
-        var token = x.toToken(type);
-        if (type == TokenType.IDENTIFIER) {
-            return reservedWords.contains(token.getValue())
-                    ? token.withType(TokenType.RESERVED)
-                    : token;
-        }
-        return token;
+        return normalizeToken(x.toToken(type));
+    }
+
+    private Token normalizeToken(Token token) {
+        return (token.getType() == TokenType.IDENTIFIER
+                && reservedWords.contains(token.getValue()))
+            ? token.withType(TokenType.RESERVED)
+            : token;
     }
 
     @FunctionalInterface

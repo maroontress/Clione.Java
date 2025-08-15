@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
+
 import com.maroontress.clione.impl.DefaultLexicalParser;
 
 /**
@@ -76,6 +78,14 @@ public interface LexicalParser extends AutoCloseable {
         @throws IOException If an I/O error occurs.
     */
     Optional<Token> next() throws IOException;
+
+    /**
+        Returns the unmodifiable {@link Set} containing the reserved words
+        that this parser uses.
+
+        @return The unmodifiable {@link Set} containing the reserved words.
+    */
+    Set<String> getReservedWords();
 
     /**
         Returns a new {@link LexicalParser} object.
