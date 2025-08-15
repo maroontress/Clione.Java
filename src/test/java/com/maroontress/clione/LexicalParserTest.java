@@ -312,6 +312,65 @@ public final class LexicalParserTest {
     }
 
     @Test
+    public void sharpAsPunctuator() {
+        var s = """
+            #define IGNORE(x, y)
+            IGNORE(#, ##)
+            """;
+        var childList = List.of(
+                pair("define", TokenType.DIRECTIVE_NAME),
+                pair(" ", TokenType.DELIMITER),
+                pair("IGNORE", TokenType.IDENTIFIER),
+                pair("(", TokenType.PUNCTUATOR),
+                pair("x", TokenType.IDENTIFIER),
+                pair(",", TokenType.PUNCTUATOR),
+                pair(" ", TokenType.DELIMITER),
+                pair("y", TokenType.IDENTIFIER),
+                pair(")", TokenType.PUNCTUATOR),
+                pair("\n", TokenType.DIRECTIVE_END));
+        var list = List.of(
+                pair("#", TokenType.DIRECTIVE, childList),
+                pair("IGNORE", TokenType.IDENTIFIER),
+                pair("(", TokenType.PUNCTUATOR),
+                pair("#", TokenType.PUNCTUATOR),
+                pair(",", TokenType.PUNCTUATOR),
+                pair(" ", TokenType.DELIMITER),
+                pair("##", TokenType.PUNCTUATOR),
+                pair(")", TokenType.PUNCTUATOR),
+                pair("\n", TokenType.DELIMITER));
+        test(s, list);
+    }
+
+    @Test
+    public void sharpAsDirective() {
+        var s = """
+            #define IGNORE(x)
+            IGNORE(
+            #
+            )
+            """;
+        var defineIgnore = List.of(
+                pair("define", TokenType.DIRECTIVE_NAME),
+                pair(" ", TokenType.DELIMITER),
+                pair("IGNORE", TokenType.IDENTIFIER),
+                pair("(", TokenType.PUNCTUATOR),
+                pair("x", TokenType.IDENTIFIER),
+                pair(")", TokenType.PUNCTUATOR),
+                pair("\n", TokenType.DIRECTIVE_END));
+        var emptyChildList = List.of(
+                pair("\n", TokenType.DIRECTIVE_END));
+        var list = List.of(
+                pair("#", TokenType.DIRECTIVE, defineIgnore),
+                pair("IGNORE", TokenType.IDENTIFIER),
+                pair("(", TokenType.PUNCTUATOR),
+                pair("\n", TokenType.DELIMITER),
+                pair("#", TokenType.DIRECTIVE, emptyChildList),
+                pair(")", TokenType.PUNCTUATOR),
+                pair("\n", TokenType.DELIMITER));
+        test(s, list);
+    }
+
+    @Test
     public void includeDirective0() {
         var s = """
             #include/* COMMENT

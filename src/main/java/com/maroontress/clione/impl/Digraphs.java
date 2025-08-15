@@ -43,11 +43,11 @@ public final class Digraphs {
         stores in its builder.
 
         @param x The transcriber.
-        @return The token type ({@link TokenType#DIRECTIVE}).
+        @return The token type ({@link TokenType#PUNCTUATOR}).
     */
     public static TokenType toDirective(Transcriber x) {
         x.getBuilder().replaceDigraph('#');
-        return TokenType.DIRECTIVE;
+        return TokenType.PUNCTUATOR;
     }
 
     /**
@@ -56,11 +56,11 @@ public final class Digraphs {
         stores in its builder.
 
         @param x The transcriber.
-        @return The token type ({@link TokenType#UNKNOWN}).
+        @return The token type ({@link TokenType#PUNCTUATOR}).
     */
     public static TokenType toUnknownDoubleNumberSign(Transcriber x) {
         x.getBuilder().replaceDigraph('#', '#');
-        return TokenType.UNKNOWN;
+        return TokenType.PUNCTUATOR;
     }
 
     /**
