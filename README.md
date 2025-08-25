@@ -466,15 +466,19 @@ The following table lists all valid tokens of which the type is
 ;       ,       ...     <:      :>      <%      %>
 ```
 
-The lexical parser specially treats the four tokens: `#`, `%:`, `##`, and
-`%:%:`. The type of them is `TokenType.OPERATOR` in directive lines. Otherwise,
-`#` and `%:` are of type `TokenType.DIRECTIVE`, `##` and `%:%:` are of type
-`TokenType.UNKNOWN` as follows:
+The lexical parser provides special treatment for four tokens: `#`, `%:`, `##`,
+and `%:%:`. Their type is `TokenType.OPERATOR` when they appear in directive
+lines. Otherwise, if they are the first token of the line, `#` and `%:` are
+classified as `TokenType.DIRECTIVE`, while `##` and `%:%:` are classified as
+`TokenType.UNKNOWN`, as shown below:
 
 | Tokens | In directive lines | Otherwise |
 |:---:|:---:|:---:|
 | `#` `%:`    | `TokenType.OPERATOR` | `TokenType.DIRECTIVE` |
 | `##` `%:%:` | `TokenType.OPERATOR` | `TokenType.UNKNOWN`   |
+
+If they are neither in directive lines nor the first token of the line, their
+type is `TokenType.PUNCTUATOR`.
 
 The following table lists all tokens that are digraphs:
 
