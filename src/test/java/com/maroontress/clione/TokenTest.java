@@ -7,10 +7,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 public final class TokenTest {
@@ -25,8 +22,8 @@ public final class TokenTest {
     @Test
     void isType() {
         var token = createToken("if", TokenType.RESERVED);
-        assertTrue(token.isType(TokenType.RESERVED));
-        assertFalse(token.isType(TokenType.IDENTIFIER));
+        assertThat(token.isType(TokenType.RESERVED), is(true));
+        assertThat(token.isType(TokenType.IDENTIFIER), is(false));
     }
 
     @ParameterizedTest
@@ -34,15 +31,15 @@ public final class TokenTest {
     void isTypeWithAllTypes(TokenType type) {
         var token = createToken("test", type);
         for (var t : TokenType.values()) {
-            assertEquals(t == type, token.isType(t));
+            assertThat(token.isType(t), is(t == type));
         }
     }
 
     @Test
     void isValue() {
         var token = createToken("if", TokenType.RESERVED);
-        assertTrue(token.isValue("if"));
-        assertFalse(token.isValue("else"));
+        assertThat(token.isValue("if"), is(true));
+        assertThat(token.isValue("else"), is(false));
     }
 
     // A simple implementation of SourceChar for testing.
