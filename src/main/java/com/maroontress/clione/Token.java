@@ -2,6 +2,7 @@ package com.maroontress.clione;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
     The preprocessing token.
@@ -95,4 +96,43 @@ public interface Token {
     */
     @Override
     String toString();
+
+    /**
+        Tests if the characters of this token form the given string.
+
+        <p>Returns true if and only if the given string and the return value
+        of {@link #getValue()} are equal.</p>
+
+        <p>The comparison is exact (case-sensitive), does not perform any
+        normalization or trimming, and considers only this token's characters
+        (child tokens, if any, are not involved).</p>
+
+        @param value the string to compare with the token's characters; must
+            not be null.
+        @return {@code true} if the token's characters equal the given string;
+            {@code false} otherwise.
+    */
+    default boolean isValue(String value) {
+        var chars = getChars();
+        var size = chars.size();
+        if (value.length() != size) {
+            return false;
+        }
+        return IntStream.range(0, size)
+                .allMatch(k -> value.charAt(k) == chars.get(k).toChar());
+    }
+
+    /**
+        Tests whether this token has the specified token type.
+
+        <p>Returns {@code true} if and only if the specified {@code type} is
+        the same enum constant as returned by {@link #getType()}.</p>
+
+        @param type the token type to compare; may be {@code null}
+        @return {@code true} if this token's type equals {@code type};
+            {@code false} otherwise
+    */
+    default boolean isType(TokenType type) {
+        return getType() == type;
+    }
 }
