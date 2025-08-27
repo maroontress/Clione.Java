@@ -131,7 +131,7 @@ public final class Transcriber {
     }
 
     /**
-        Reads characters from the source up tp the specified terminator
+        Reads characters from the source up to the specified terminator
         character (including the terminator character).
 
         <p>This method will return when it reads the specified terminator

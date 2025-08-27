@@ -12,7 +12,7 @@ public enum TokenType {
         The character constant beginning with either {@code "'"}, {@code "u'"},
         {@code "U'"}, or {@code "L'"} and ending with a {@code "'"}.
 
-        <p>The character constant can contain a escape sequence between single
+        <p>The character constant can contain an escape sequence between single
         quotes.</p>
     */
     CHARACTER,
