@@ -17,7 +17,7 @@ import static org.hamcrest.Matchers.is;
 public final class TokensTest {
 
     @Test
-    public void concatenateReserved() throws IOException {
+    public void concatenateReserved() {
         var left = newToken("in");
         var right = newToken("t");
         var t = Tokens.concatenate(left, right, Set.of("int"));
@@ -26,7 +26,7 @@ public final class TokensTest {
     }
 
     @Test
-    public void concatenateIdentifier() throws IOException {
+    public void concatenateIdentifier() {
         var left = newToken("int");
         var right = newToken("32");
         var t = Tokens.concatenate(left, right, Set.of());
@@ -35,7 +35,7 @@ public final class TokensTest {
     }
 
     @Test
-    public void concatenatePunctuator() throws IOException {
+    public void concatenatePunctuator() {
         var left = newToken("#");
         var right = newToken("#");
         var t = Tokens.concatenate(left, right, Set.of());
@@ -44,7 +44,7 @@ public final class TokensTest {
     }
 
     @Test
-    public void concatenateOperator() throws IOException {
+    public void concatenateOperator() {
         var left = newToken("+");
         var right = newToken("+");
         var t = Tokens.concatenate(left, right, Set.of());
@@ -54,7 +54,7 @@ public final class TokensTest {
     }
 
     @Test
-    public void concatenateNumber() throws IOException {
+    public void concatenateNumber() {
         var left = newToken("0");
         var right = newToken("x");
         var t = Tokens.concatenate(left, right, Set.of());
@@ -63,7 +63,7 @@ public final class TokensTest {
     }
 
     @Test
-    public void concatenateUnknown() throws IOException {
+    public void concatenateUnknown() {
         var left = newToken("+");
         var right = newToken("-");
         var t = Tokens.concatenate(left, right, Set.of());
@@ -72,7 +72,7 @@ public final class TokensTest {
     }
 
     @Test
-    void stringizeEmpty() throws IOException {
+    void stringizeEmpty() {
         var where = new SourceLocation(1, 1);
         var result = Tokens.stringize(List.of(), where);
 
@@ -82,7 +82,7 @@ public final class TokensTest {
     }
 
     @Test
-    void stringizeTrimsAndCollapsesWhitespace() throws IOException {
+    void stringizeTrimsAndCollapsesWhitespace() {
         var list = newTokenList("""
              /**/ foo /**/ bar /**/
             """);
@@ -105,7 +105,7 @@ public final class TokensTest {
     }
 
     @Test
-    void stringizePreservesEmbeddedStringAndEscapes() throws IOException {
+    void stringizePreservesEmbeddedStringAndEscapes() {
         var list = newTokenList("""
             x "a \\ b" y
             """);
@@ -136,22 +136,22 @@ public final class TokensTest {
         assertSourceLocationList(result.getChars(), expectedLocations);
     }
 
-    private Token newToken(String s) throws IOException {
-        return LexicalParser.of(new StringReader(s))
-                .next()
-                .orElseThrow();
+    private Token newToken(String s) {
+        try {
+            return LexicalParser.of(new StringReader(s))
+                    .next()
+                    .orElseThrow();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
-    private List<Token> newTokenList(String s) throws IOException {
+    private List<Token> newTokenList(String s) {
         var parser = LexicalParser.of(new StringReader(s));
-        try {
-            return Stream.generate(() -> getToken(parser))
-                    .takeWhile(t -> t.isPresent())
-                    .map(t -> t.get())
-                    .toList();
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
-        }
+        return Stream.generate(() -> getToken(parser))
+                .takeWhile(t -> t.isPresent())
+                .map(t -> t.get())
+                .toList();
     }
 
     private Optional<Token> getToken(LexicalParser parser) {
