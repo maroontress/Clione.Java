@@ -28,6 +28,7 @@ public interface SourceChar {
         <p>This object behaves as follows:</p>
         <ul>
         <li>The {@link #isEof()} method returns {@code true}</li>
+        <li>The {@link #getFilename()} method returns {@code null}</li>
         <li>The {@link #toChar()} and {@link #getSpan()} methods throw an
         {@link IllegalStateException}</li>
         <li>The {@link #getChildren()} method returns {@link #EMPTY_LIST}</li>
@@ -38,8 +39,12 @@ public interface SourceChar {
         instead.</p>
 
         <p>Note that this is an immutable object.</p>
+
+        @deprecated Not for public use in the future. This field is expected to
+        be removed.
     */
-    SourceChar STATIC_EOF = new Eof() {
+    @Deprecated
+    SourceChar STATIC_EOF = new Eof(null) {
         @Override
         public SourceSpan getSpan() {
             throw new IllegalStateException();
@@ -50,6 +55,13 @@ public interface SourceChar {
             return EMPTY_LIST;
         }
     };
+
+    /**
+        Returns the filename.
+
+        @return The filename. Or {@code null} if no filename is specified.
+    */
+    String getFilename();
 
     /**
         Returns whether this object represents EOF.

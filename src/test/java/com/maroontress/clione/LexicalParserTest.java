@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 public final class LexicalParserTest {
 
@@ -838,9 +839,69 @@ public final class LexicalParserTest {
         });
     }
 
+    @Test
+    public void filename() {
+        var s = "foo";
+        var filename = "test.c";
+        test(s, filename, parser -> {
+            assertThat(parser.getFilename(), is(filename));
+            {
+                var maybeToken = parser.next();
+                assertThat(maybeToken.isPresent(), is(true));
+                var token = maybeToken.get();
+                assertThat(token.getType(), is(TokenType.IDENTIFIER));
+                assertThat(token.getValue(), is(s));
+                var chars = token.getChars();
+                for (var c : chars) {
+                    assertThat(c.getFilename(), is(filename));
+                }
+            }
+            {
+                var maybeToken = parser.next();
+                assertThat(maybeToken.isEmpty(), is(true));
+                var maybeEof = parser.getEof();
+                assert maybeEof.isPresent();
+                var eof = maybeEof.get();
+                assertThat(eof.getFilename(), is(filename));
+            }
+        });
+    }
+
+    @Test
+    public void noFilename() {
+        var s = "foo";
+        test(s, parser -> {
+            assertThat(parser.getFilename(), is(nullValue()));
+            {
+                var maybeToken = parser.next();
+                assertThat(maybeToken.isPresent(), is(true));
+                var token = maybeToken.get();
+                assertThat(token.getType(), is(TokenType.IDENTIFIER));
+                assertThat(token.getValue(), is(s));
+                var chars = token.getChars();
+                for (var c : chars) {
+                    assertThat(c.getFilename(), is(nullValue()));
+                }
+            }
+            {
+                var maybeToken = parser.next();
+                assertThat(maybeToken.isEmpty(), is(true));
+                var maybeEof = parser.getEof();
+                assert maybeEof.isPresent();
+                var eof = maybeEof.get();
+                assertThat(eof.getFilename(), is(nullValue()));
+            }
+        });
+    }
+
     private static void test(String s, ParserConsumer consumer) {
         var source = new StringReader(s);
         test(consumer, () -> LexicalParser.of(source));
+    }
+
+    private static void test(String s, String filename, ParserConsumer consumer) {
+        var source = new StringReader(s);
+        test(consumer, () -> LexicalParser.of(source, filename));
     }
 
     private static void test(String s, ParserConsumer consumer,

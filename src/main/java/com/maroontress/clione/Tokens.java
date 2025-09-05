@@ -135,7 +135,7 @@ public final class Tokens {
     }
 
     private static Optional<TokenType> getTokenType(String tokenString) {
-        var source = new ReaderSource(new StringReader(tokenString));
+        var source = new ReaderSource(new StringReader(tokenString), null);
         var x = new Transcriber(source);
         try {
             var type = x.readToken();

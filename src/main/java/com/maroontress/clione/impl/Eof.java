@@ -9,8 +9,21 @@ import com.maroontress.clione.SourceSpan;
 */
 public abstract class Eof implements SourceChar {
 
-    /**　Creates a new instance.　*/
-    protected Eof() {
+    private final String filename;
+
+    /**
+     * Creates a new instance.
+     *
+     * @param filename The filename.
+     */
+    protected Eof(String filename) {
+        this.filename = filename;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public final String getFilename() {
+        return filename;
     }
 
     /** {@inheritDoc} */

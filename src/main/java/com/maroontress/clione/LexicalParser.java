@@ -80,6 +80,13 @@ public interface LexicalParser extends AutoCloseable {
     Optional<Token> next() throws IOException;
 
     /**
+        Returns the filename.
+
+        @return The filename. Or {@code null} if no filename is specified.
+    */
+    String getFilename();
+
+    /**
         Returns the unmodifiable {@link Set} containing the reserved words
         that this parser uses.
 
@@ -97,7 +104,21 @@ public interface LexicalParser extends AutoCloseable {
         @return The new {@link LexicalParser} object.
     */
     static LexicalParser of(Reader reader) {
-        return new DefaultLexicalParser(reader);
+        return new DefaultLexicalParser(reader, null, Keywords.C11);
+    }
+
+    /**
+        Returns a new {@link LexicalParser} object.
+
+        <p>The instance considers {@link Keywords#C11} as reserved
+        keywords.</p>
+
+        @param reader The reader that provides the stream of the source file.
+        @param filename The filename.
+        @return The new {@link LexicalParser} object.
+    */
+    static LexicalParser of(Reader reader, String filename) {
+        return new DefaultLexicalParser(reader, filename, Keywords.C11);
     }
 
     /**
@@ -111,6 +132,23 @@ public interface LexicalParser extends AutoCloseable {
         @return The new {@link LexicalParser} object.
     */
     static LexicalParser of(Reader reader, Collection<String> reservedWords) {
-        return new DefaultLexicalParser(reader, reservedWords);
+        return new DefaultLexicalParser(reader, null, reservedWords);
+    }
+
+    /**
+        Returns a new {@link LexicalParser} object with the specified reserved
+        words.
+
+        @param reader The reader that provides the stream of the source file.
+        @param filename The filename.
+        @param reservedWords The collection that contains reserved words.
+            Note that the constructor copies the collection, so changes to the
+            collection do not affect this instance.
+        @return The new {@link LexicalParser} object.
+    */
+    static LexicalParser of(Reader reader,
+            String filename,
+            Collection<String> reservedWords) {
+        return new DefaultLexicalParser(reader, filename, reservedWords);
     }
 }

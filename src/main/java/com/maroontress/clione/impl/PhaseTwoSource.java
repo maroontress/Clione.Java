@@ -34,6 +34,12 @@ public final class PhaseTwoSource implements Source {
 
     /** {@inheritDoc} */
     @Override
+    public String getFilename() {
+        return source.getFilename();
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public SourceLocation getLocation() {
         return source.getLocation();
     }
@@ -81,7 +87,7 @@ public final class PhaseTwoSource implements Source {
             return c;
         }
         if (c.isEof()) {
-            return SourceChars.eof(list);
+            return SourceChars.eof(getFilename(), list);
         }
         return SourceChars.of(list, c);
     }

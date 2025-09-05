@@ -14,6 +14,7 @@ import com.maroontress.clione.SourceLocation;
 public final class ReaderSource implements Source {
 
     private final UnifiedNewlineReader reader;
+    private final String filename;
     private final Deque<SourceChar> stack;
     private int line = 1;
     private int column = 1;
@@ -22,9 +23,11 @@ public final class ReaderSource implements Source {
         Creates a new source.
 
         @param reader The reader from which characters will be read.
+        @param filename The filename.
     */
-    public ReaderSource(Reader reader) {
+    public ReaderSource(Reader reader, String filename) {
         this.reader = new UnifiedNewlineReader(reader);
+        this.filename = filename;
         stack = new ArrayDeque<>();
     }
 
@@ -32,6 +35,12 @@ public final class ReaderSource implements Source {
     @Override
     public void close() throws IOException {
         reader.close();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String getFilename() {
+        return filename;
     }
 
     /** {@inheritDoc} */
@@ -51,9 +60,9 @@ public final class ReaderSource implements Source {
         }
         var i = reader.read();
         if (i == -1) {
-            return SourceChars.eof();
+            return SourceChars.eof(filename);
         }
-        var c = SourceChars.of((char) i, column, line);
+        var c = SourceChars.of((char) i, filename, column, line);
         if (i == '\n') {
             column = 1;
             ++line;
@@ -83,6 +92,6 @@ public final class ReaderSource implements Source {
         }
         var nextColumn = (Character.isLowSurrogate((char) next))
                 ? column : column + 1;
-        stack.addFirst(SourceChars.of((char) next, nextColumn, line));
+        stack.addFirst(SourceChars.of((char) next, filename, nextColumn, line));
     }
 }

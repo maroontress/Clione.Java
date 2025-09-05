@@ -26,31 +26,21 @@ public final class DefaultLexicalParser implements LexicalParser {
     /**
         Creates a new instance.
 
-        <p>The instance considers {@link Keywords#C11} as reserved
-        words.</p>
-
         @param reader The reader that provides the stream of the source file.
-    */
-    public DefaultLexicalParser(Reader reader) {
-        this(reader, Keywords.C11);
-    }
-
-    /**
-        Creates a new instance.
-
-        @param reader The reader that provides the stream of the source file.
+        @param filename The filename.
         @param reservedWords The collection that contains reserved keywords.
-        Note that the constructor copies the collection, so changes to the
-        collection do not affect this instance.
+            Note that the constructor copies the collection, so changes to the
+            collection do not affect this instance.
     */
-    public DefaultLexicalParser(Reader reader,
-                                Collection<String> reservedWords) {
-        this(reader, Set.copyOf(reservedWords));
+    public DefaultLexicalParser(Reader reader, String filename,
+            Collection<String> reservedWords) {
+        this(reader, filename, Set.copyOf(reservedWords));
     }
 
-    private DefaultLexicalParser(Reader reader, Set<String> reservedWords) {
+    private DefaultLexicalParser(Reader reader, String filename,
+            Set<String> reservedWords) {
         source = new PhaseTwoSource(new PhaseOneSource(
-                new ReaderSource(reader)));
+                new ReaderSource(reader, filename)));
         this.reservedWords = reservedWords;
     }
 
@@ -75,6 +65,12 @@ public final class DefaultLexicalParser implements LexicalParser {
     @Override
     public SourceLocation getLocation() {
         return source.getLocation();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String getFilename() {
+        return source.getFilename();
     }
 
     /** {@inheritDoc} */
