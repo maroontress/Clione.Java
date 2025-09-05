@@ -33,6 +33,12 @@ public final class PhaseOneSource implements Source {
 
     /** {@inheritDoc} */
     @Override
+    public String getFilename() {
+        return source.getFilename();
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public SourceLocation getLocation() {
         return source.getLocation();
     }

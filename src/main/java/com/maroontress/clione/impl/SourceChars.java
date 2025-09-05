@@ -21,10 +21,21 @@ public final class SourceChars {
     /**
         Returns EOF.
 
-        @return EOF (that is {@link SourceChar#STATIC_EOF}).
+        @param filename The filename.
+        @return The new EOF.
     */
-    public static SourceChar eof() {
-        return SourceChar.STATIC_EOF;
+    public static SourceChar eof(String filename) {
+        return new Eof(filename) {
+            @Override
+            public SourceSpan getSpan() {
+                throw new IllegalStateException();
+            }
+
+            @Override
+            public List<SourceChar> getChildren() {
+                return EMPTY_LIST;
+            }
+        };
     }
 
     /**
@@ -53,12 +64,14 @@ public final class SourceChars {
 
         <p>Note that the EOF this method returns is an immutable object.</p>
 
+        @param filename The filename.
         @param children The non-empty collection containing the child
             characters.
         @return The new EOF.
         @throws IllegalArgumentException If the {@code children} is empty.
     */
-    public static SourceChar eof(Collection<SourceChar> children) {
+    public static SourceChar eof(String filename,
+            Collection<SourceChar> children) {
         if (children.isEmpty()) {
             throw new IllegalArgumentException("children must not be empty");
         }
@@ -66,7 +79,7 @@ public final class SourceChars {
         var start = list.get(0).getSpan();
         var end = list.get(list.size() - 1).getSpan();
         var span = new SourceSpan(start, end);
-        return new Eof() {
+        return new Eof(filename) {
             @Override
             public SourceSpan getSpan() {
                 return span;
@@ -104,7 +117,8 @@ public final class SourceChars {
         var list = Stream.concat(children.stream(), Stream.of(c))
                         .collect(Collectors.toUnmodifiableList());
         var span = new SourceSpan(list.get(0).getSpan(), c.getSpan());
-        return of(c.toChar(), span, list);
+        var filename = c.getFilename();
+        return of(c.toChar(), filename, span, list);
     }
 
     /**
@@ -128,7 +142,8 @@ public final class SourceChars {
         var start = first.getSpan().getStart();
         var end = third.getSpan().getEnd();
         var span = new SourceSpan(start, end);
-        return of(c, span, List.of(first, second, third));
+        var filename = first.getFilename();
+        return of(c, filename, span, List.of(first, second, third));
     }
 
     /**
@@ -150,7 +165,8 @@ public final class SourceChars {
         var start = first.getSpan().getStart();
         var end = second.getSpan().getEnd();
         var span = new SourceSpan(start, end);
-        return of(c, span, List.of(first, second));
+        var filename = first.getFilename();
+        return of(c, filename, span, List.of(first, second));
     }
 
     /**
@@ -166,9 +182,27 @@ public final class SourceChars {
         @return The new {@link SourceChar} object.
     */
     public static SourceChar of(char c, int column, int line) {
+        return of(c, null, column, line);
+    }
+
+    /**
+        Returns a new {@link SourceChar} object that has no child characters
+        (that is a leaf character).
+
+        <p>Note that the character this method returns is an immutable
+        object.</p>
+
+        @param c The character that represents the new character.
+        @param filename The filename.
+        @param column The column number of the character.
+        @param line The line number of the character.
+        @return The new {@link SourceChar} object.
+    */
+    public static SourceChar of(
+            char c, String filename, int column, int line) {
         var w = new SourceLocation(line, column);
         var span = new SourceSpan(w);
-        return of(c, span, SourceChar.EMPTY_LIST);
+        return of(c, filename, span, SourceChar.EMPTY_LIST);
     }
 
     /**
@@ -179,16 +213,22 @@ public final class SourceChars {
         object.</p>
 
         @param c The character that represents the new character.
+        @param filename The filename.
         @param span The span that is the range of the characters in the source
             file.
         @param children The collection containing the child characters, or
             {@link SourceChar#EMPTY_LIST}.
         @return The new {@link SourceChar} object.
     */
-    private static SourceChar of(char c, SourceSpan span,
+    private static SourceChar of(char c, String filename, SourceSpan span,
                                  Collection<SourceChar> children) {
         var list = List.copyOf(children);
         return new SourceChar() {
+            @Override
+            public String getFilename() {
+                return filename;
+            }
+
             @Override
             public boolean isEof() {
                 return false;

@@ -18,6 +18,13 @@ public interface Source {
     void close() throws IOException;
 
     /**
+        Returns the filename.
+
+        @return The filename. Or {@code null} if no filename is specified.
+    */
+    String getFilename();
+
+    /**
         Returns the current location of this source.
 
         @return The current location.
@@ -36,11 +43,6 @@ public interface Source {
         {@link Source} or {@link Reader}. It may also replace one or more
         {@link SourceChar} objects with another {@link SourceChar} object and
         return it.</p>
-
-        <p>The return value representing EOF may differ from
-        {@link SourceChar#STATIC_EOF}. Do not compare it with
-        {@link SourceChar#STATIC_EOF}, use {@link SourceChar#isEof()} method
-        instead.</p>
 
         @return The new {@link SourceChar} object.
         @throws IOException If an I/O error occurs.
