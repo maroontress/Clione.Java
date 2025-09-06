@@ -7,12 +7,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
 import com.maroontress.clione.Keywords;
 import com.maroontress.clione.LexicalParser;
 import com.maroontress.clione.SourceChar;
 import com.maroontress.clione.SourceLocation;
 import com.maroontress.clione.Token;
 import com.maroontress.clione.TokenType;
+import com.maroontress.clione.Tokens;
 
 /**
     The default implementation of {@link LexicalParser}.
@@ -92,7 +94,7 @@ public final class DefaultLexicalParser implements LexicalParser {
             return null;
         }
         var token = x.toToken(type);
-        if (type == TokenType.DELIMITER && token.getValue().equals("\n")) {
+        if (type == TokenType.DELIMITER && token.isValue("\n")) {
             isTheFirstTokenFound = false;
             return token;
         }
@@ -101,11 +103,11 @@ public final class DefaultLexicalParser implements LexicalParser {
         }
         if (!isTheFirstTokenFound
                 && type == TokenType.PUNCTUATOR
-                && token.getValue().equals("#")) {
+                && token.isValue("#")) {
             return newDirectiveToken(token.withType(TokenType.DIRECTIVE));
         }
         isTheFirstTokenFound = true;
-        return normalizeToken(token);
+        return Tokens.normalizeToken(token, reservedWords);
     }
 
     private Token newDirectiveToken(Token token) throws IOException {
@@ -114,18 +116,18 @@ public final class DefaultLexicalParser implements LexicalParser {
     }
 
     private List<Token> newDirectiveChildTokens() throws IOException {
+        var kit = new DirectiveParseKit(source, reservedWords);
         var children = new ArrayList<Token>();
         for (;;) {
-            var child = newDirectiveChildToken();
+            var child = kit.newDirectiveChildToken();
             if (child == null) {
                 return children;
             }
-            var type = child.getType();
-            if (type == TokenType.DIRECTIVE_END) {
+            if (child.isType(TokenType.DIRECTIVE_END)) {
                 children.add(child);
                 return children;
             }
-            if (type == TokenType.DELIMITER || type == TokenType.COMMENT) {
+            if (Tokens.isDelimiterOrComment(child)) {
                 children.add(child);
                 continue;
             }
@@ -133,81 +135,20 @@ public final class DefaultLexicalParser implements LexicalParser {
             if (!Keywords.PP_DIRECTIVE_NAMES.contains(value)) {
                 // INVALID
                 children.add(child);
-                addDirectiveTokens(children);
+                kit.addDirectiveTokens(children);
                 return children;
             }
             children.add(child.withType(TokenType.DIRECTIVE_NAME));
-            if (value.equals("include")) {
-                addIncludeDirectiveTokens(children);
-                return children;
-            }
-            addDirectiveTokens(children);
+            AddTokens addTokens = value.equals("include")
+                ? kit::addIncludeDirectiveTokens
+                : kit::addDirectiveTokens;
+            addTokens.accept(children);
             return children;
         }
     }
 
-    private void addDirectiveTokens(List<Token> list)
-            throws IOException {
-        for (;;) {
-            var token = newDirectiveChildToken();
-            if (token == null) {
-                return;
-            }
-            list.add(token);
-            var type = token.getType();
-            if (type == TokenType.DIRECTIVE_END) {
-                return;
-            }
-        }
-    }
-
-    private void addIncludeDirectiveTokens(List<Token> list)
-            throws IOException {
-        for (;;) {
-            var token = newIncludeDirectiveChildToken();
-            if (token == null) {
-                return;
-            }
-            list.add(token);
-            var type = token.getType();
-            if (type == TokenType.DIRECTIVE_END) {
-                return;
-            }
-            if (type == TokenType.DELIMITER
-                || type == TokenType.COMMENT) {
-                continue;
-            }
-            addDirectiveTokens(list);
-            return;
-        }
-    }
-
-    private Token newDirectiveChildToken() throws IOException {
-        return newChildToken(Transcriber::readDirectiveToken);
-    }
-
-    private Token newIncludeDirectiveChildToken() throws IOException {
-        return newChildToken(Transcriber::readIncludeDirectiveToken);
-    }
-
-    private Token newChildToken(NextTokenReader reader) throws IOException {
-        var x = new Transcriber(source);
-        var type = reader.apply(x);
-        if (type == null) {
-            return null;
-        }
-        return normalizeToken(x.toToken(type));
-    }
-
-    private Token normalizeToken(Token token) {
-        return (token.getType() == TokenType.IDENTIFIER
-                && reservedWords.contains(token.getValue()))
-            ? token.withType(TokenType.RESERVED)
-            : token;
-    }
-
     @FunctionalInterface
-    private interface NextTokenReader {
-        TokenType apply(Transcriber x) throws IOException;
+    private interface AddTokens {
+        void accept(List<Token> list) throws IOException;
     }
 }

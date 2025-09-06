@@ -3,13 +3,17 @@ package com.maroontress.clione;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.maroontress.clione.impl.DirectiveParseKit;
 import com.maroontress.clione.impl.ReaderSource;
+import com.maroontress.clione.impl.ReparseSource;
 import com.maroontress.clione.impl.SourceChars;
 import com.maroontress.clione.impl.TokenBuilder;
 import com.maroontress.clione.impl.Transcriber;
@@ -20,6 +24,33 @@ import com.maroontress.clione.impl.Transcriber;
 public final class Tokens {
 
     private Tokens() {
+    }
+
+    /**
+        Reparses the given tokens as an include directive.
+
+        @param tokens The tokens.
+        @param filename The filename.
+        @param reservedWords The set of the reserved words.
+        @return The list of the new tokens.
+    */
+    public static List<Token> reparseIncludeFilename(
+            Collection<Token> tokens,
+            String filename,
+            Set<String> reservedWords) {
+        var charList = tokens.stream()
+                .flatMap(t -> t.getChars().stream())
+                .toList();
+        var source = new ReparseSource(charList, filename);
+        var list = new ArrayList<Token>();
+        var kit = new DirectiveParseKit(source, reservedWords);
+        try {
+            kit.addIncludeDirectiveTokens(list);
+            return list;
+        } catch (IOException e) {
+            // This should not happen with ReparseSource.
+            return null;
+        }
     }
 
     /**
@@ -126,6 +157,7 @@ public final class Tokens {
                 .flatMap(t -> t.getChars().stream())
                 .forEach(builder::append);
         var tokenString = builder.toTokenString();
+        // Note: tokenString must not be empty.
         if (reservedWords.contains(tokenString)) {
             return builder.toToken(TokenType.RESERVED);
         }
@@ -141,7 +173,7 @@ public final class Tokens {
             var type = x.readToken();
             /*
                 TokenBuilder#toTokenString() never returns an empty string,
-                so the　null-check below is unnecessary:
+                so the null-check below is unnecessary:
 
                     if (type == null) {
                         return Optional.empty();
@@ -178,9 +210,38 @@ public final class Tokens {
         return SourceChars.of(c, location.getColumn(), location.getLine());
     }
 
-    private static boolean isDelimiterOrComment(Token token) {
+    /**
+        Checks whether the given token is a delimiter or a comment.
+
+        @param token The token to be checked.
+        @return {@code true} if the token is a delimiter or a comment,
+            otherwise {@code false}.
+    */
+    public static boolean isDelimiterOrComment(Token token) {
         var type = token.getType();
         return type == TokenType.DELIMITER
                 || type == TokenType.COMMENT;
+    }
+
+    /**
+        Normalizes the given token.
+
+        <p>If the token is an identifier and its value is in the given
+        set of the reserved words, this method returns a new token that
+        is the same as the given token except that its type is
+        {@code TokenType.RESERVED}.</p>
+
+        <p>Otherwise, this method returns the given token with no
+        modifications.</p>
+
+        @param token The token.
+        @param reservedWords The set of the reserved words.
+        @return The new token.
+    */
+    public static Token normalizeToken(Token token, Set<String> reservedWords) {
+        return (token.isType(TokenType.IDENTIFIER)
+                && reservedWords.contains(token.getValue()))
+            ? token.withType(TokenType.RESERVED)
+            : token;
     }
 }
