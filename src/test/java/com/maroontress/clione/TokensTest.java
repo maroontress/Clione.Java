@@ -6,6 +6,7 @@ import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -134,6 +135,76 @@ public final class TokensTest {
                 /* y */ new SourceLocation(1, 11),
                 where);
         assertSourceLocationList(result.getChars(), expectedLocations);
+    }
+
+    @Test
+    void reparseIncludeFilenameAngle() {
+        var tokens = newTokenList("<stdio.h>");
+        var result = Tokens.reparseIncludeFilename(tokens, "test.c", Set.of());
+        var list = List.of(
+                pair("<stdio.h>", TokenType.STANDARD_HEADER));
+        test(result, list);
+    }
+
+    @Test
+    void reparseIncludeFilenameQuote() {
+        var tokens = newTokenList("\"my/file.h\"");
+        var result = Tokens.reparseIncludeFilename(tokens, "test.c", Set.of());
+        var list = List.of(
+                pair("\"my/file.h\"", TokenType.FILENAME));
+        test(result, list);
+    }
+
+    @Test
+    void reparseIncludeFilenameWithWhitespace() {
+        var tokens = newTokenList("  <stdio.h>");
+        var result = Tokens.reparseIncludeFilename(tokens, "test.c", Set.of());
+        var list = List.of(
+                pair("  ", TokenType.DELIMITER),
+                pair("<stdio.h>", TokenType.STANDARD_HEADER));
+        test(result, list);
+    }
+
+    @Test
+    void reparseIncludeFilenameAngleFollowedByAngle() {
+        var tokens = newTokenList("<stdio.h> <stdlib.h>\n");
+        var result = Tokens.reparseIncludeFilename(tokens, "test.c", Set.of());
+        var list = List.of(
+                pair("<stdio.h>", TokenType.STANDARD_HEADER),
+                pair(" ", TokenType.DELIMITER),
+                pair("<", TokenType.OPERATOR),
+                pair("stdlib", TokenType.IDENTIFIER),
+                pair(".", TokenType.OPERATOR),
+                pair("h", TokenType.IDENTIFIER),
+                pair(">", TokenType.OPERATOR),
+                pair("\n", TokenType.DIRECTIVE_END));
+        test(result, list);
+    }
+
+    @Test
+    void reparseIncludeFilenameInvalid() {
+        var tokens = newTokenList("stdio.h");
+        var result = Tokens.reparseIncludeFilename(tokens, "test.c", Set.of());
+        var list = List.of(
+                pair("stdio", TokenType.IDENTIFIER),
+                pair(".", TokenType.OPERATOR),
+                pair("h", TokenType.IDENTIFIER));
+        test(result, list);
+    }
+
+    private static void test(List<Token> actual, List<Consumer<Token>> list) {
+        var size = actual.size();
+        assertThat(size, is(list.size()));
+        for (var k = 0; k < size; ++k) {
+            list.get(k).accept(actual.get(k));
+        }
+    }
+
+    private static Consumer<Token> pair(String value, TokenType type) {
+        return t -> {
+            assertThat(t.getValue(), is(value));
+            assertThat(t.getType(), is(type));
+        };
     }
 
     private Token newToken(String s) {
