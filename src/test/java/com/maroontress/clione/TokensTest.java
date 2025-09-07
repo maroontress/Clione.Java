@@ -18,6 +18,13 @@ import static org.hamcrest.Matchers.is;
 public final class TokensTest {
 
     @Test
+    void isDelimiterOrComment() {
+        assertThat(Tokens.isDelimiterOrComment(newToken(" ")), is(true));
+        assertThat(Tokens.isDelimiterOrComment(newToken("/**/")), is(true));
+        assertThat(Tokens.isDelimiterOrComment(newToken("a")), is(false));
+    }
+
+    @Test
     public void concatenateReserved() {
         var left = newToken("in");
         var right = newToken("t");
