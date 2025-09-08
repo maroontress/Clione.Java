@@ -224,6 +224,19 @@ public final class Tokens {
     }
 
     /**
+        Checks whether the given token is a keyword or an identifier.
+
+        @param token The token to be checked.
+        @return {@code true} if the token is a keyword or an identifier,
+            otherwise {@code false}.
+    */
+    public static boolean isKeywordOrIdentifier(Token token) {
+        var type = token.getType();
+        return type == TokenType.IDENTIFIER
+                || type == TokenType.RESERVED;
+    }
+
+    /**
         Normalizes the given token.
 
         <p>If the token is an identifier and its value is in the given
