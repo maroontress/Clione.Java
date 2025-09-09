@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -23,6 +25,8 @@ public final class DefaultLexicalParser implements LexicalParser {
 
     private final Source source;
     private final Set<String> reservedWords;
+    private final DirectiveParseKit kit;
+    private final Map<String, AddTokens> addTokensMap;
     private boolean isTheFirstTokenFound;
 
     /**
@@ -44,6 +48,11 @@ public final class DefaultLexicalParser implements LexicalParser {
         source = new PhaseTwoSource(new PhaseOneSource(
                 new ReaderSource(reader, filename)));
         this.reservedWords = reservedWords;
+        kit = new DirectiveParseKit(source, reservedWords);
+        var map = new HashMap<String, AddTokens>();
+        map.put("include", kit::addIncludeDirectiveTokens);
+        map.put("line", kit::addLineDirectiveTokens);
+        addTokensMap = map;
     }
 
     /** {@inheritDoc} */
@@ -116,7 +125,6 @@ public final class DefaultLexicalParser implements LexicalParser {
     }
 
     private List<Token> newDirectiveChildTokens() throws IOException {
-        var kit = new DirectiveParseKit(source, reservedWords);
         var children = new ArrayList<Token>();
         for (;;) {
             var child = kit.newDirectiveChildToken();
@@ -139,10 +147,8 @@ public final class DefaultLexicalParser implements LexicalParser {
                 return children;
             }
             children.add(child.withType(TokenType.DIRECTIVE_NAME));
-            AddTokens addTokens = value.equals("include")
-                ? kit::addIncludeDirectiveTokens
-                : kit::addDirectiveTokens;
-            addTokens.accept(children);
+            addTokensMap.getOrDefault(value, kit::addDirectiveTokens)
+                    .accept(children);
             return children;
         }
     }

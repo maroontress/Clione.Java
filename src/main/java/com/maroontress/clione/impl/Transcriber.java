@@ -521,6 +521,18 @@ public final class Transcriber {
     }
 
     /**
+        Reads a token from the source in the context of a preprocessing
+        {@code #line} directive.
+
+        @return The token type of the token to have read.
+        @throws IOException If an I/O error occurs.
+    */
+    public TokenType readLineDirectiveToken() throws IOException {
+        return readTokenOtherwise(Switches.LINE_DIRECTIVE,
+                Transcriber::readSymbol);
+    }
+
+    /**
         Reads characters according to the specified mapper.
 
         <p>This method reads the character that the mapper maps to the

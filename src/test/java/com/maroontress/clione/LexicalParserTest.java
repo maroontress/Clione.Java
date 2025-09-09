@@ -466,6 +466,38 @@ public final class LexicalParserTest {
     }
 
     @Test
+    public void lineDirectiveWithoutFilename() {
+        var s = """
+            #line 100
+            """;
+        var lineChildList = List.of(
+                pair("line", TokenType.DIRECTIVE_NAME),
+                pair(" ", TokenType.DELIMITER),
+                pair("100", TokenType.DIGITS),
+                pair("\n", TokenType.DIRECTIVE_END));
+        var list = List.of(
+                pair("#", TokenType.DIRECTIVE, lineChildList));
+        test(s, list);
+    }
+
+    @Test
+    public void lineDirectiveWithFilename() {
+        var s = """
+            #line 100 "main.c"
+            """;
+        var lineChildList = List.of(
+                pair("line", TokenType.DIRECTIVE_NAME),
+                pair(" ", TokenType.DELIMITER),
+                pair("100", TokenType.DIGITS),
+                pair(" ", TokenType.DELIMITER),
+                pair("\"main.c\"", TokenType.FILENAME),
+                pair("\n", TokenType.DIRECTIVE_END));
+        var list = List.of(
+                pair("#", TokenType.DIRECTIVE, lineChildList));
+        test(s, list);
+    }
+
+    @Test
     public void unterminatedStandardHeader() {
         var s = """
             #include <std

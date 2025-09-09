@@ -85,6 +85,13 @@ public enum TokenType {
     NUMBER,
 
     /**
+        The digits that follow a {@code line} directive name.
+
+        <p>Note that this differs from {@link #NUMBER}.</p>
+    */
+    DIGITS,
+
+    /**
         The operator.
 
         <p>The operator is either: {@code +}, {@code -}, {@code *}, {@code /},
