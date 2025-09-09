@@ -192,6 +192,14 @@ public final class TokensTest {
         test(result, list);
     }
 
+    @Test
+    void isKeywordOrIdentifier() {
+        assertThat(Tokens.isKeywordOrIdentifier(newToken("foo")), is(true));
+        assertThat(Tokens.isKeywordOrIdentifier(newToken("int")), is(true));
+        assertThat(Tokens.isKeywordOrIdentifier(newToken("42")), is(false));
+        assertThat(Tokens.isKeywordOrIdentifier(newToken(";")), is(false));
+    }
+
     private static void test(List<Token> actual, List<Consumer<Token>> list) {
         var size = actual.size();
         assertThat(size, is(list.size()));
