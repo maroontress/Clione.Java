@@ -18,6 +18,14 @@ import static org.hamcrest.Matchers.is;
 public final class TokensTest {
 
     @Test
+    void isKeywordOrIdentifier() {
+        assertThat(Tokens.isKeywordOrIdentifier(newToken("foo")), is(true));
+        assertThat(Tokens.isKeywordOrIdentifier(newToken("int")), is(true));
+        assertThat(Tokens.isKeywordOrIdentifier(newToken("42")), is(false));
+        assertThat(Tokens.isKeywordOrIdentifier(newToken(";")), is(false));
+    }
+
+    @Test
     void isDelimiterOrComment() {
         assertThat(Tokens.isDelimiterOrComment(newToken(" ")), is(true));
         assertThat(Tokens.isDelimiterOrComment(newToken("/**/")), is(true));
@@ -200,11 +208,54 @@ public final class TokensTest {
     }
 
     @Test
-    void isKeywordOrIdentifier() {
-        assertThat(Tokens.isKeywordOrIdentifier(newToken("foo")), is(true));
-        assertThat(Tokens.isKeywordOrIdentifier(newToken("int")), is(true));
-        assertThat(Tokens.isKeywordOrIdentifier(newToken("42")), is(false));
-        assertThat(Tokens.isKeywordOrIdentifier(newToken(";")), is(false));
+    void reparseLineDigitsAndFilenameOnlyWithLine() {
+        var tokens = newTokenList("123");
+        var result = Tokens.reparseLineDigitsAndFilename(tokens, "test.c", Set.of());
+        var list = List.of(
+                pair("123", TokenType.DIGITS));
+        test(result, list);
+    }
+
+    @Test
+    void reparseLineDigitsAndFilename() {
+        var tokens = newTokenList("123 \"new_file.c\"");
+        var result = Tokens.reparseLineDigitsAndFilename(tokens, "test.c", Set.of());
+        var list = List.of(
+                pair("123", TokenType.DIGITS),
+                pair(" ", TokenType.DELIMITER),
+                pair("\"new_file.c\"", TokenType.FILENAME));
+        test(result, list);
+    }
+
+    @Test
+    void reparseLineDigitsAndFilenameWithExtraTokens() {
+        var tokens = newTokenList("123 \"new_file.c\" 42 \"main.c\"");
+        var result = Tokens.reparseLineDigitsAndFilename(tokens, "test.c", Set.of());
+        var list = List.of(
+                pair("123", TokenType.DIGITS),
+                pair(" ", TokenType.DELIMITER),
+                pair("\"new_file.c\"", TokenType.FILENAME),
+                pair(" ", TokenType.DELIMITER),
+                pair("42", TokenType.NUMBER),
+                pair(" ", TokenType.DELIMITER),
+                pair("\"main.c\"", TokenType.STRING));
+        test(result, list);
+    }
+
+    @Test
+    void reparseLineDigitsAndFilenameWithMacros() {
+        var tokens = newTokenList("FOO BAR(X) BAZ");
+        var result = Tokens.reparseLineDigitsAndFilename(tokens, "test.c", Set.of());
+        var list = List.of(
+                pair("FOO", TokenType.IDENTIFIER),
+                pair(" ", TokenType.DELIMITER),
+                pair("BAR", TokenType.IDENTIFIER),
+                pair("(", TokenType.PUNCTUATOR),
+                pair("X", TokenType.IDENTIFIER),
+                pair(")", TokenType.PUNCTUATOR),
+                pair(" ", TokenType.DELIMITER),
+                pair("BAZ", TokenType.IDENTIFIER));
+        test(result, list);
     }
 
     private static void test(List<Token> actual, List<Consumer<Token>> list) {

@@ -45,7 +45,7 @@ public final class Switches {
             Cases.PUNCTUATOR,
             // >
             Cases.GREATER_THAN,
-            // >
+            // <
             Cases.LESS_THAN,
             // *^!~
             Cases.OPERATOR_FOLLOWED_BY_EQUAL,
@@ -94,7 +94,7 @@ public final class Switches {
             Cases.PUNCTUATOR,
             // >
             Cases.GREATER_THAN,
-            // >
+            // <
             Cases.LESS_THAN,
             // *^!~
             Cases.OPERATOR_FOLLOWED_BY_EQUAL,
@@ -145,7 +145,56 @@ public final class Switches {
             Cases.PUNCTUATOR,
             // >
             Cases.GREATER_THAN,
+            // <
+            Cases.LESS_THAN,
+            // *^!~
+            Cases.OPERATOR_FOLLOWED_BY_EQUAL,
+            // +
+            Cases.PLUS,
+            // &
+            Cases.AND,
+            // |
+            Cases.OR);
+
+    /** The mapper used inside preprocessing {@code line} directives. */
+    public static final Mapper LINE_DIRECTIVE = Case.newMapper(
+            // '\n'
+            Cases.DIRECTIVE_END,
+            // ' ' or '\t'
+            Cases.DIRECTIVE_DELIMITER,
+            // u
+            LowerU.CASE,
+            // [LU]
+            UpperLOrU.CASE,
+            // "
+            Cases.FILENAME,
+            // '
+            Cases.CHARACTER_CONSTANT,
+            // /
+            Slash.CASE,
+            // [_A-Za-z] (except LUu so that the order is important)
+            Cases.IDENTIFIER,
+            // '\\'
+            Backslash.CASE,
+            // [0-9]
+            Cases.DIGITS,
+            // .
+            Dot.CASE,
+            // #
+            SharpInsideDirective.CASE,
+            // %
+            PercentInsideDirective.CASE,
+            // :
+            Colon.CASE,
+            // -
+            Cases.MINUS,
+            // ?
+            Cases.QUESTION,
+            // [](){},;
+            Cases.PUNCTUATOR,
             // >
+            Cases.GREATER_THAN,
+            // <
             Cases.LESS_THAN,
             // *^!~
             Cases.OPERATOR_FOLLOWED_BY_EQUAL,
@@ -383,6 +432,12 @@ public final class Switches {
                 Chars.DIGIT_SET, x -> {
                     x.readNumber();
                     return TokenType.NUMBER;
+                });
+
+        static final Case DIGITS = Case.of(
+                Chars.DIGIT_SET, x -> {
+                    x.readZeroOrMoreChars(Chars::isDigit);
+                    return TokenType.DIGITS;
                 });
 
         static final Case IDENTIFIER = Case.of(

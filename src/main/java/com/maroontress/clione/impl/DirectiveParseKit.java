@@ -56,9 +56,45 @@ public final class DirectiveParseKit {
         @param list The list of tokens.
         @throws IOException if an I/O error occurs.
     */
-    public void addIncludeDirectiveTokens(List<Token> list) throws IOException {
+    public void addIncludeDirectiveTokens(List<Token> list)
+            throws IOException {
+        addSpecialDirectiveTokens(list, this::newIncludeDirectiveChildToken);
+    }
+
+    /**
+        Adds tokens of the line directive to the specified list.
+
+        @param list The list of tokens.
+        @throws IOException if an I/O error occurs.
+    */
+    public void addLineDirectiveTokens(List<Token> list) throws IOException {
+        addSpecialDirectiveTokens(list, this::newLineDirectiveChildToken,
+                this::addLineDirectiveLastTokens);
+    }
+
+    private void addLineDirectiveLastTokens(List<Token> list)
+            throws IOException {
+        addSpecialDirectiveTokens(list, this::newLineDirectiveChildToken);
+    }
+
+    private void addSpecialDirectiveTokens(
+            List<Token> list, TokenSupplier supplier) throws IOException {
+        addSpecialDirectiveTokens(list, supplier, this::addDirectiveTokens);
+    }
+
+    /**
+        Adds tokens of the special directive to the specified list.
+
+        @param list The list of tokens.
+        @param supplier The token supplier.
+        @param addNextTokens The function to add next tokens.
+        @throws IOException if an I/O error occurs.
+    */
+    private void addSpecialDirectiveTokens(
+            List<Token> list, TokenSupplier supplier,
+            TokenListConsumer addNextTokens) throws IOException {
         for (;;) {
-            var token = newIncludeDirectiveChildToken();
+            var token = supplier.get();
             if (token == null) {
                 return;
             }
@@ -69,7 +105,7 @@ public final class DirectiveParseKit {
             if (Tokens.isDelimiterOrComment(token)) {
                 continue;
             }
-            addDirectiveTokens(list);
+            addNextTokens.accept(list);
             return;
         }
     }
@@ -94,6 +130,16 @@ public final class DirectiveParseKit {
         return newChildToken(Transcriber::readIncludeDirectiveToken);
     }
 
+    /**
+        Returns the next token of the line directive.
+
+        @return The next token.
+        @throws IOException if an I/O error occurs.
+    */
+    public Token newLineDirectiveChildToken() throws IOException {
+        return newChildToken(Transcriber::readLineDirectiveToken);
+    }
+
     private Token newChildToken(NextTokenReader reader) throws IOException {
         var x = new Transcriber(source);
         var type = reader.apply(x);
@@ -106,5 +152,24 @@ public final class DirectiveParseKit {
     @FunctionalInterface
     private interface NextTokenReader {
         TokenType apply(Transcriber x) throws IOException;
+    }
+
+    @FunctionalInterface
+    private interface TokenSupplier {
+        Token get() throws IOException;
+    }
+
+    /**
+        The functional interface that accepts a list of tokens.
+    */
+    @FunctionalInterface
+    public interface TokenListConsumer {
+        /**
+            Accepts a list of tokens.
+
+            @param list The list of tokens.
+            @throws IOException if an I/O error occurs.
+        */
+        void accept(List<Token> list) throws IOException;
     }
 }

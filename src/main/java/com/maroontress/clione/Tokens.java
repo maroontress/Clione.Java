@@ -9,6 +9,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.maroontress.clione.impl.DirectiveParseKit;
@@ -17,6 +18,7 @@ import com.maroontress.clione.impl.ReparseSource;
 import com.maroontress.clione.impl.SourceChars;
 import com.maroontress.clione.impl.TokenBuilder;
 import com.maroontress.clione.impl.Transcriber;
+import com.maroontress.clione.impl.DirectiveParseKit.TokenListConsumer;
 
 /**
     The utility class for operations on token sequence.
@@ -27,6 +29,21 @@ public final class Tokens {
     }
 
     /**
+        Reparses the given tokens as a line directive.
+
+        @param tokens The tokens.
+        @param filename The filename.
+        @param reservedWords The set of the reserved words.
+        @return The list of the new tokens.
+    */
+    public static List<Token> reparseLineDigitsAndFilename(
+            Collection<Token> tokens,
+            String filename, Set<String> reservedWords) {
+        return reparse(tokens, filename, reservedWords,
+                kit -> kit::addLineDirectiveTokens);
+    }
+
+    /**
         Reparses the given tokens as an include directive.
 
         @param tokens The tokens.
@@ -34,10 +51,17 @@ public final class Tokens {
         @param reservedWords The set of the reserved words.
         @return The list of the new tokens.
     */
-    public static List<Token> reparseIncludeFilename(
+    public static List<Token> reparseIncludeFilename(Collection<Token> tokens,
+            String filename, Set<String> reservedWords) {
+        return reparse(tokens, filename, reservedWords,
+                kit -> kit::addIncludeDirectiveTokens);
+    }
+
+    private static List<Token> reparse(
             Collection<Token> tokens,
             String filename,
-            Set<String> reservedWords) {
+            Set<String> reservedWords,
+            Function<DirectiveParseKit, TokenListConsumer> toConsumer) {
         var charList = tokens.stream()
                 .flatMap(t -> t.getChars().stream())
                 .toList();
@@ -45,7 +69,7 @@ public final class Tokens {
         var list = new ArrayList<Token>();
         var kit = new DirectiveParseKit(source, reservedWords);
         try {
-            kit.addIncludeDirectiveTokens(list);
+            toConsumer.apply(kit).accept(list);
             return list;
         } catch (IOException e) {
             // This should not happen with ReparseSource.
