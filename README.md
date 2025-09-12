@@ -536,6 +536,23 @@ terminate, and so on.
 The token types of standard header names and filenames are
 `TokenType.STANDARD_HEADER` and `TokenType.FILENAME`, respectively.
 
+### Line directives
+
+When the directive name equals `line`, the arguments must be either:
+
+- a sequence of digits
+- a sequence of digits followed by a filename between double quotes (`"` and
+  `"`)
+- any other form that expands to the above forms after macro replacement
+
+A sequence of digits and a filename are preprocessing tokens.
+
+The content of the tokens can be incomplete. For example, the filename may not
+terminate, and so on.
+
+The token types of a sequence of digits and a filename are `TokenType.DIGITS`
+and `TokenType.FILENAME`, respectively.
+
 ## Unknown tokens
 
 When the lexical parser encounters characters that do not fit the above
